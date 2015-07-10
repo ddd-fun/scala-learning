@@ -48,6 +48,26 @@ case class StateAction[A,S](runAction:S=>(A,S)){
   }
 
 
+  def modify(f: S=>S): StateAction[S, Unit] = {
+     StateAction( s=> { val (a,s) = runAction(s)
+          (f(s), ())
+     }  )
+  }
+
+
+  def modify(stateAction: StateAction[A,S])(f: S=>S): StateAction[Unit,S] = {
+     stateAction.flatMap[Unit]( _ => StateAction[S,S]( s=> (s, f(s)) ).map( _=>() )  )
+  }
+
+  def modify2(stateAction: StateAction[A,S])(f: S=>S): StateAction[Unit,S] = {
+    for{
+       s <- stateAction
+       next <- f
+    }yield()
+  }
+
+
+
   def sequence(list:List[StateAction[A,S]]):StateAction[List[A], S] ={
 
    val resultList:List[(A,S)] =  list.foldLeft[List[(A,S)]](List[(A,S)]()) ((l:List[(A,S)],s:StateAction[A,S]) => l ::: List( s.runAction(l.reverse.head._2) ) )
