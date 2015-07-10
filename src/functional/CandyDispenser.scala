@@ -7,9 +7,10 @@ object CandyDispenser {
 
     val m = Machine(true, 0, 1)
 
-    val list = List(Coin, Turn, Coin, Turn)
+    val list = List[Input](Coin, Turn, Coin, Turn)
 
 
+    println(list.reverse.head)
 
 
 
@@ -47,7 +48,12 @@ case class StateAction[A,S](runAction:S=>(A,S)){
   }
 
 
+  def sequence(list:List[StateAction[A,S]]):StateAction[List[A], S] ={
 
+   val resultList:List[(A,S)] =  list.foldLeft[List[(A,S)]](List[(A,S)]()) ((l:List[(A,S)],s:StateAction[A,S]) => l ::: List( s.runAction(l.reverse.head._2) ) )
+
+    StateAction( s => (resultList.map( (r:(A,S)) => r._1), resultList.head._2) )
+  }
 
 
 }
