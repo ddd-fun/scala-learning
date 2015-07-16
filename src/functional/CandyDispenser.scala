@@ -48,23 +48,23 @@ case class StateAction[A,S](runAction:S=>(A,S)){
   }
 
 
-  def modify(f: S=>S): StateAction[S, Unit] = {
-     StateAction( s=> { val (a,s) = runAction(s)
-          (f(s), ())
-     }  )
-  }
+//  def modify(f: S=>S): StateAction[S, Unit] = {
+//     StateAction( s=> { val (a,s1) = runAction(s)
+//          (f(s1), ())
+//     }  )
+//  }
 
 
   def modify(stateAction: StateAction[A,S])(f: S=>S): StateAction[Unit,S] = {
      stateAction.flatMap[Unit]( _ => StateAction[S,S]( s=> (s, f(s)) ).map( _=>() )  )
   }
 
-  def modify2(stateAction: StateAction[A,S])(f: S=>S): StateAction[Unit,S] = {
-    for{
-       s <- stateAction
-       next <- f
-    }yield()
-  }
+//  def modify2(stateAction: StateAction[A,S])(f: S=>S): StateAction[Unit,S] = {
+//    for{
+//       s <- stateAction
+//       next <- f
+//    }yield()
+//  }
 
 
 
