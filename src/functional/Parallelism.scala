@@ -1,6 +1,12 @@
 package functional
 
 import java.lang.Thread
+import java.util.concurrent.ExecutorService
+
+import java.util.concurrent.Future
+import functional.Parallelism.Par.Par
+import java.util.concurrent._
+//import scala.concurrent.Future
 
 
 object Parallelism {
@@ -8,32 +14,41 @@ object Parallelism {
 
   def main(args: Array[String]) {
 
-    println( sum( IndexedSeq(1,2,3,4,0) ) )
+    //println( sum( IndexedSeq(1,2,3,4,0) ) )
 
   }
 
 
 
-  def sum(seq: IndexedSeq[Int]) : Par[Int] ={
-    if(seq.size <= 1) Par.unit( seq.headOption getOrElse 0)
-    else{
-      val (l,r) = seq.splitAt( seq.size / 2 )
-      Par.map2(Par.fork(sum(l)), Par.fork(sum(r)))(_+_)
-    }
-  }
+//  def sum(seq: IndexedSeq[Int]) : Par[Int] ={
+//    if(seq.size <= 1) Par.unit( seq.headOption getOrElse 0)
+//    else{
+//      val (l,r) = seq.splitAt( seq.size / 2 )
+//      Par.map2(Par.fork(sum(l)), Par.fork(sum(r)))(_+_)
+//    }
+//  }
 
 
-  case class Par[A](a: A)
+  //case class Par[A](a: A)
 
   object Par {
 
-    def unit[A](a: =>A):Par[A] = Par(a)
+    type Par[A] = ExecutorService => Future[A]
 
-    def get[A](par: Par[A]) : A = par.a
+    def unit[A](a: =>A):Par[A] = (es:ExecutorService) => UnitFuture(a)
 
-    def map2[A,B,C](par: Par[A], parb: Par[B])(mapf: (A,B)=>C ) :Par[C] ={
-      Par.unit( mapf( Par.get(par), Par.get(parb) ) )
+    private case class UnitFuture[A](get: A) extends Future[A] {
+      def isDone = true
+      def get(timeout: Long, units: TimeUnit) = get
+      def isCancelled = false
+      def cancel(evenIfRunning: Boolean): Boolean = false
     }
+
+    def run[A](executorService: ExecutorService)(par: Par[A]) : Future[A] = par(executorService)
+
+//    def map2[A,B,C](par: Par[A], parb: Par[B])(mapf: (A,B)=>C ) :Par[C] ={
+//      Par.unit( mapf( Par.run(par), Par.run(parb) ) )
+//    }
 
     def fork[A](a: => Par[A]):Par[A] ={
       a
