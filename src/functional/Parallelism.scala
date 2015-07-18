@@ -14,19 +14,22 @@ object Parallelism {
 
   def main(args: Array[String]) {
 
-    //println( sum( IndexedSeq(1,2,3,4,0) ) )
+
+    val res = sum( IndexedSeq(1,2,3,4,0) ).apply( Executors.newCachedThreadPool())
+
+    println( res.get )
 
   }
 
 
 
-//  def sum(seq: IndexedSeq[Int]) : Par[Int] ={
-//    if(seq.size <= 1) Par.unit( seq.headOption getOrElse 0)
-//    else{
-//      val (l,r) = seq.splitAt( seq.size / 2 )
-//      Par.map2(Par.fork(sum(l)), Par.fork(sum(r)))(_+_)
-//    }
-//  }
+  def sum(seq: IndexedSeq[Int]) : Par[Int] ={
+    if(seq.size <= 1) Par.unit( seq.headOption getOrElse 0)
+    else{
+      val (l,r) = seq.splitAt( seq.size / 2 )
+      Par.map2(Par.fork(sum(l)), Par.fork(sum(r)))(_+_)
+    }
+  }
 
 
   //case class Par[A](a: A)
@@ -46,12 +49,21 @@ object Parallelism {
 
     def run[A](executorService: ExecutorService)(par: Par[A]) : Future[A] = par(executorService)
 
-//    def map2[A,B,C](par: Par[A], parb: Par[B])(mapf: (A,B)=>C ) :Par[C] ={
-//      Par.unit( mapf( Par.run(par), Par.run(parb) ) )
-//    }
+    def map2[A,B,C](par: Par[A], parb: Par[B])(mapf: (A,B)=>C ) :Par[C] ={
+      (es:ExecutorService) =>{
+        val a = par(es)
+        val b = parb(es)
+        UnitFuture(mapf(a.get, b.get))
+      }
+
+    }
 
     def fork[A](a: => Par[A]):Par[A] ={
-      a
+      (es:ExecutorService) =>{
+        es.submit(new Callable[A] {
+          override def call(): A = a(es).get
+        } )
+      }
     }
 
   }
