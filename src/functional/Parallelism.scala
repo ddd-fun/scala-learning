@@ -66,6 +66,18 @@ object Parallelism {
       }
     }
 
+
+    def async[A](a: =>A) : Par[A] = {
+      fork(unit(a))
+    }
+
+    def asyncF[A,B](f:A=>B): A=>Par[B] = {
+      (a) => {
+          async( f(a) )
+      }
+    }
+
+
   }
 
 
