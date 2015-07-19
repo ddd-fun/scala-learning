@@ -78,6 +78,14 @@ object Parallelism {
     }
 
 
+    def map[A,B](a:Par[A])(f:A=>B):Par[B] ={
+      (es:ExecutorService) => {
+        UnitFuture( f(a(es).get) )
+      }
+    }
+
+
+
   }
 
 
