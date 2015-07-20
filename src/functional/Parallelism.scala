@@ -84,6 +84,25 @@ object Parallelism {
       }
     }
 
+    def sequence[A](list:List[Par[A]]) : Par[List[A]] = {
+      es => UnitFuture(list.map(p => fork(p)).map(p=>p(es).get))
+    }
+
+
+
+    def parFilter[A](f: A=>Boolean)(list:List[A]) : Par[List[A]] = {
+      //fork(  unit( list.filter(f) )  )
+      es =>
+      val af = asyncF(f)
+
+      val filteredList = list.filter( a => af(a).apply(es).get  )
+
+        // A => Par[A,Boolean])
+
+      UnitFuture(filteredList)
+
+    }
+
 
 
   }
