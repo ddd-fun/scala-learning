@@ -38,6 +38,10 @@ object Parsers {
 
     def listOfN[A](n: Int, p:Parser[A]) : Parser[List[A]]
 
+    def many[A](a:Parser[A]) : Parser[List[A]]
+
+    def map[A,B](a:Parser[A])(f:A=>B):Parser[B]
+
 
     case class ParserOps[A](p:Parser[A]) {
 
