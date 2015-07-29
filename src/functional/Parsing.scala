@@ -13,6 +13,9 @@ object Parsing {
     val res2 = Reference.string("abracadabra")("abracadabra")
     println(res2)
 
+    val orParser = Reference.or(Reference.string("abra"), Reference.string("cadabra"))
+    println(orParser("abra"))
+
 
   }
 
@@ -27,7 +30,15 @@ object Parsing {
     override def char(c:Char) : Parser[Char] = str => if( str.toCharArray.size == 1 && str.charAt(0) == c ) Right(c) else Left(ParserError("expected "+c))
 
     override def string(str:String):Parser[String] = inString => {
-      if(inString == str ) Right(str) else Left(new ParserError("expected string" + str))
+      if(inString == str ) Right(str) else Left(new ParserError("expected string: " + str))
+    }
+
+    override def or[A](a:Parser[A], b:Parser[A]) : Parser[A] = {
+      str => {
+         val aRun = a(str)
+         if(aRun.isRight) aRun
+           else b(str)
+      }
     }
 
   }
@@ -43,6 +54,8 @@ object Parsing {
     def char(c:Char):Parser[Char]
 
     def string(str:String) : Parser[String]
+
+    def or[A](a:Parser[A], b:Parser[A]):Parser[A]
 
   }
 
