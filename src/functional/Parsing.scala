@@ -36,8 +36,10 @@ object Parsing {
     override def or[A](a:Parser[A], b:Parser[A]) : Parser[A] = {
       str => {
          val aRun = a(str)
-         if(aRun.isRight) aRun
-           else b(str)
+         aRun match {
+           case Right(s) => aRun
+           case Left(err) => b(str)
+         }
       }
     }
 
