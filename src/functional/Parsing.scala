@@ -8,10 +8,10 @@ object Parsing {
 
 
     val res = Reference.char('a').apply("a")
-
     println(res)
-    
 
+    val res2 = Reference.string("abracadabra")("abracadabra")
+    println(res2)
 
 
   }
@@ -26,6 +26,10 @@ object Parsing {
 
     override def char(c:Char) : Parser[Char] = str => if( str.toCharArray.size == 1 && str.charAt(0) == c ) Right(c) else Left(ParserError("expected "+c))
 
+    override def string(str:String):Parser[String] = inString => {
+      if(inString == str ) Right(str) else Left(new ParserError("expected string" + str))
+    }
+
   }
 
 
@@ -37,6 +41,8 @@ object Parsing {
     def run[A](parser: Parser[A])(str:String) : Either[ParserError, A]
 
     def char(c:Char):Parser[Char]
+
+    def string(str:String) : Parser[String]
 
   }
 
