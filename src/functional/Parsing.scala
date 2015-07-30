@@ -7,53 +7,65 @@ object Parsing {
   def main(args: Array[String]) {
 
 
-    val res = Reference.char('a').apply("a")
-    println(res)
 
-    val res2 = Reference.string("abracadabra")("abracadabra")
-    println(res2)
+    val strParser = Reference.string("abra")
+    println(Reference.run(strParser)("abracadabra"))
 
     val orParser = Reference.or(Reference.string("abra"), Reference.string("cadabra"))
-    println(orParser("abra"))
+    println(Reference.run(orParser)("cadabrablabla"))
 
 
   }
 
   case class ParserError(msg:String)
 
-  type Parser[A] = String => Either[ParserError, A]
+  type Parser[A] = Location => Result[A]
 
 
   object Reference extends Parsers{
-    override def run[A](parser: Parser[A])(str: String): Either[ParserError,A]  = parser(str)
+    override def run[A](parser: Parser[A])(str: String):Result[A]  = parser(Location(str))
 
-    override def char(c:Char) : Parser[Char] = str => if( str.toCharArray.size == 1 && str.charAt(0) == c ) Right(c) else Left(ParserError("expected "+c))
 
-    override def string(str:String):Parser[String] = inString => {
-      if(inString == str ) Right(str) else Left(new ParserError("expected string: " + str))
+    override def string(str:String):Parser[String] = (input:Location) => {
+      if(input.currentPos.startsWith(str)) Success(str, str.length)
+       else Failure("expected "+str)
     }
 
     override def or[A](a:Parser[A], b:Parser[A]) : Parser[A] = {
       str => {
          val aRun = a(str)
          aRun match {
-           case Right(s) => aRun
-           case Left(err) => b(str)
+           case s@Success(_, _) => s
+           case Failure(_) => b(str)
          }
       }
     }
 
   }
 
+  trait Result[+A]
+  case class Success[+A](get:A, charConsumed:Int) extends Result[A]
+  case class Failure(error:String) extends Result[Nothing]
 
+
+  case class Location(input:String, offset:Int =0){
+
+    def advanceBy(numChars: Int):Location = {
+      var calcOffset = offset + numChars
+      if(calcOffset > input.length)  calcOffset = input.length
+      copy(input, offset = calcOffset)
+    }
+
+    def currentPos: String =
+      if (input.length > 1) input.substring(offset)
+      else ""
+  }
 
 
 
   trait Parsers{ self=>
 
-    def run[A](parser: Parser[A])(str:String) : Either[ParserError, A]
-
-    def char(c:Char):Parser[Char]
+    def run[A](parser: Parser[A])(str:String) : Result[A]
 
     def string(str:String) : Parser[String]
 
