@@ -19,8 +19,8 @@ object Parsing {
     println(Reference.run(orParser)("cadabrablabla"))
 
 
-    val manyParser = Reference.many(Reference.string("abra"))
-    println(Reference.run(manyParser)("abra"))
+    val manyParser = Reference.map(Reference.many(Reference.or(Reference.string("abra"), Reference.string("cadabra"))))(_.length)
+    println(Reference.run(manyParser)("abraabracadabra"))
 
 
   }
@@ -68,8 +68,15 @@ object Parsing {
       }
     }
 
+    override def map[A, B](a: Parser[A])(f: (A) => B): Parser[B] = {
+      in=>{
+          a(in) match {
+            case Success(r,n) => Success(f(r),n)
+            case f@Failure(err) => f
+          }
+      }
 
-
+    }
   }
 
   trait Result[+A]
@@ -98,6 +105,8 @@ object Parsing {
     def or[A](a:Parser[A], b:Parser[A]):Parser[A]
 
     def many[A](a:Parser[A]):Parser[List[A]]
+
+    def map[A,B](a:Parser[A])(f:A=>B):Parser[B]
 
   }
 
