@@ -1,5 +1,9 @@
 package functional
 
+import functional.Parsing.{Failure, Success}
+
+import scala.collection.mutable.ListBuffer
+
 
 object Parsing {
 
@@ -13,6 +17,10 @@ object Parsing {
 
     val orParser = Reference.or(Reference.string("abra"), Reference.string("cadabra"))
     println(Reference.run(orParser)("cadabrablabla"))
+
+
+    val manyParser = Reference.many(Reference.string("abra"))
+    println(Reference.run(manyParser)("abra"))
 
 
   }
@@ -41,6 +49,27 @@ object Parsing {
       }
     }
 
+
+    override def many[A](a:Parser[A]):Parser[List[A]] = {
+      in => {
+        val list = new collection.mutable.ListBuffer[A]
+
+        def go(p:Parser[A], offset:Int): Result[List[A]] ={
+          val pars = p(in.advanceBy(offset))
+
+          pars match {
+            case Success(a,n) => list += a; go(p, n+offset)
+            case f@Failure(e) => if(list.isEmpty) f else Success(list.toList, offset)
+          }
+
+        }
+
+        go(a, 0)
+      }
+    }
+
+
+
   }
 
   trait Result[+A]
@@ -51,14 +80,11 @@ object Parsing {
   case class Location(input:String, offset:Int =0){
 
     def advanceBy(numChars: Int):Location = {
-      var calcOffset = offset + numChars
-      if(calcOffset > input.length)  calcOffset = input.length
-      copy(input, offset = calcOffset)
+      copy(input, offset = offset + numChars)
     }
 
-    def currentPos: String =
-      if (input.length > 1) input.substring(offset)
-      else ""
+    def currentPos: String = input.substring(offset)
+
   }
 
 
@@ -70,6 +96,8 @@ object Parsing {
     def string(str:String) : Parser[String]
 
     def or[A](a:Parser[A], b:Parser[A]):Parser[A]
+
+    def many[A](a:Parser[A]):Parser[List[A]]
 
   }
 
