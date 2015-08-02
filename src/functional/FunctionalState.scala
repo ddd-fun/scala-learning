@@ -14,6 +14,13 @@ object FunctionalState {
 
       println( sequence[Int]( List( positiveMax(100), positiveMax(600), positiveMax(5) )).apply(RNG.simple(2)) )
 
+
+      val list = List(positiveMax(5), positiveMax(10));
+
+      println("sequence+2 = "+sequence_recImpl(list).apply(RNG.simple(100)))
+
+
+
     }
 
 
@@ -32,6 +39,20 @@ object FunctionalState {
       (result, curRng)
      }
   }
+
+
+
+  def sequence_recImpl[A](list:List[Rand[A]]) : Rand[List[A]] = {
+
+    def go(r:Rand[A], arg: List[Rand[A]]) : Rand[List[A]]={
+      if(arg.isEmpty) map(r)(a=>List(a))
+      else map2(r)( go(arg.head, arg.tail) )((a,l)=>l ::: List(a))
+    }
+
+    go(list.head, list.tail)
+
+  }
+
 
 
   def flatMap[A,B](a: Rand[A])(mapFunc: A => Rand[B]) : Rand[B] ={
