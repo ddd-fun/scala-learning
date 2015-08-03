@@ -15,6 +15,10 @@ object Parsing {
     val strParser = Reference.string("abra")
     println(Reference.run(strParser)("abracadabra"))
 
+    val lebeledParser = Reference.label("error parsing simple string:")(strParser)
+
+    println(Reference.run(lebeledParser)("ablabla"))
+
     val orParser = Reference.or(Reference.string("abra"), Reference.string("cadabra"))
     println(Reference.run(orParser)("cadabrablabla"))
 
@@ -107,6 +111,22 @@ object Parsing {
     def many[A](a:Parser[A]):Parser[List[A]]
 
     def map[A,B](a:Parser[A])(f:A=>B):Parser[B]
+
+    def flatMap[A,B](a:Parser[A])(f: A=>Parser[B]):Parser[B] = {
+      loc => a(loc) match{
+        case Success(a,n) => self.run(f(a))(loc.advanceBy(n).input)
+        case f@Failure(e) => f
+      }
+    }
+
+    def label[A](msg:String)(a:Parser[A]) : Parser[A] ={
+      loc => {
+          a(loc) match {
+            case Failure(err) => Failure(msg+" "+err)
+            case s => s
+          }
+      }
+    }
 
   }
 
