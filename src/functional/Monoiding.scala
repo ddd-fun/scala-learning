@@ -28,7 +28,33 @@ object Monoiding {
 
     println(list.foldRight(StringMonoid.zero)(StringMonoid.op))
 
+
+    val part1 = Part("Hello", 1, "dea")
+    val part2 = Part("r", 2, "frend")
+    println(MonoidicWC.op(part1, part2))
+
   }
+
+
+
+  trait WC
+  case class Stub(char:String) extends WC
+  case class Part(lStub:String, count:Int, rStub:String) extends WC
+
+  object MonoidicWC extends Monoid[WC]{
+    override def op(a: WC, b: WC): WC = {
+       (a, b) match {
+        case (Part(r1, count1, l1), Part(r2, count2, l2)) => {
+           val merge = if ( (l1 + r2).isEmpty )  0 else 1
+           Part(r1, count1+count2+merge, l2)
+        }
+      }
+
+    }
+
+    override def zero: WC = Stub("")
+  }
+
 
 
   object StringMonoid extends Monoid[String]{
