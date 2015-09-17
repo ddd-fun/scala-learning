@@ -105,6 +105,21 @@ object FunctionalState {
   }
 
 
+  def ints(count:Integer)(rng:RNG):(List[Integer], RNG) = {
+
+    def go(counter: Integer, accumList: List[Integer], nextRng: RNG) : (List[Integer], RNG) ={
+        if(counter > 0){
+          val next = nextRng.nextInt();
+          go(counter -1, accumList.::(next._1), next._2 )
+        }else{
+          (accumList, nextRng)
+        }
+    }
+
+    go(count, List(), rng)
+  }
+
+
 }
 
 
