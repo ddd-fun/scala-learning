@@ -75,6 +75,12 @@ object FunctionalState {
   }
 
 
+  def nonNegativeInt(rng:RNG) : (Integer, RNG) = {
+    val nextVal =  rng.nextInt();
+    val i : Integer = nextVal._1;
+    (if (i<0) -(i+1) else i, nextVal._2 )
+  }
+
 
   type Rand[+A] = RNG => (A, RNG)
 
