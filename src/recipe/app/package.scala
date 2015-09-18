@@ -17,9 +17,9 @@ package object app {
 
   }
 
-  abstract case class Food(val name:String)
-  case object Apple extends Food("apple")
-  case object Orange extends Food("orange")
+//  abstract case class Food(val name:String)
+//  case object Apple extends Food("apple")
+//  case object Orange extends Food("orange")
 
 
   abstract class Database{

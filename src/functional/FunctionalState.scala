@@ -7,6 +7,13 @@ object FunctionalState {
 
     def main(args: Array[String]) {
 
+
+      val randInt: Rand[Int] = rng => RNG.simple(150).nextInt();
+
+      println( randomString(randInt)((int:Int)=> String.valueOf(int)+"hello"  ) (RNG.simple(150)))
+
+      println(ints(5)(RNG.simple(10)))
+
       println(positiveMax(5).apply(RNG.simple(2)))
 
       println(doubleInt.apply(RNG.simple(100)))
@@ -38,6 +45,14 @@ object FunctionalState {
        }
       (result, curRng)
      }
+  }
+
+
+  def howTo(str:String)(int:Int) : String = ???
+
+
+  def randomString(rand:Rand[Int])(f:Int=>String) : Rand[String] = {
+    map[Int, String](rand)(f)
   }
 
 
