@@ -8,6 +8,8 @@ object FunctionalState {
     def main(args: Array[String]) {
 
 
+      println( sequence2( List( positiveMax(100), positiveMax(1), positiveMax(1000)) )(RNG.simple(12))  )
+
       val randInt: Rand[Int] = rng => RNG.simple(150).nextInt();
 
       println( randomString(randInt)((int:Int)=> String.valueOf(int)+"hello"  ) (RNG.simple(150)))
@@ -15,9 +17,6 @@ object FunctionalState {
       println(ints(5)(RNG.simple(10)))
 
       println(positiveMax(5).apply(RNG.simple(2)))
-
-      println(doubleInt.apply(RNG.simple(100)))
-
 
       println( sequence[Int]( List( positiveMax(100), positiveMax(600), positiveMax(5) )).apply(RNG.simple(2)) )
 
@@ -45,6 +44,22 @@ object FunctionalState {
        }
       (result, curRng)
      }
+  }
+
+
+  def sequence2[A](randList: List[Rand[A]]):Rand[List[A]] = {
+    rng => {
+      randList.foldLeft[(List[A], RNG)]( (List(), rng) )( (element:(List[A], RNG), nextRand: Rand[A]) => {val (a, rng) = nextRand(element._2); (element._1.::(a), rng)}  )
+    }
+  }
+
+
+  def map2_v2[A,B,C]( randA: Rand[A], randB: Rand[B]) (mapFunc: (A,B)=>C) : Rand[C] = {
+      rng => {
+       val (a,rnga) =  randA(rng)
+       val (b, rngb) = randB(rnga)
+        (mapFunc(a,b), rngb)
+      }
   }
 
 
@@ -111,7 +126,7 @@ object FunctionalState {
   }
 
 
-  def map2[A,B,C](a:Rand[A])(b:Rand[B])(m:(A, B) => C) : Rand[C] = {
+  def map2[A,B,C](a:Rand[A])(b:Rand[B])(m:(A, B) => C): Rand[C] = {
     rng => {
         val aapp = a(rng)
         val bapp = b(aapp._2)
