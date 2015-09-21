@@ -49,7 +49,7 @@ object FunctionalState {
 
   def sequence2[A](randList: List[Rand[A]]):Rand[List[A]] = {
     rng => {
-      randList.foldLeft[(List[A], RNG)]( (List(), rng) )( (element:(List[A], RNG), nextRand: Rand[A]) => {val (a, rng) = nextRand(element._2); (element._1.::(a), rng)}  )
+      randList.foldLeft[(List[A], RNG)]( (List(), rng) )( (accumulatingTuple, nextRand) => {val (a, rng) =  nextRand(accumulatingTuple._2); (accumulatingTuple._1.::(a), rng)}  )
     }
   }
 
