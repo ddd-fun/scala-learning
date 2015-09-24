@@ -170,6 +170,18 @@ case class State[A,S](val run: S=>(A,S)) {
               } )
   }
 
+
+  def get[A,S](state: State[A,S]) : State[S, S] = new State[S,S]( s => (s,s) )
+
+
+  def set[S](s:S):State[Unit, S] = new State[Unit, S]( _ => (Unit, s) )
+
+
+  def modify(f:S=>S):State[Unit,S] = {
+    get(this).flatMap( s => set(f(s)) )
+  }
+
+
 }
 
 
