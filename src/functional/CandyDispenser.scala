@@ -12,12 +12,25 @@ object CandyDispenser {
 
     println(list.reverse.head)
 
-
+    println( simulateMachine(list, m) )
 
   }
 
 
+  def simulateMachine(input:List[Input], machine: Machine ) : Machine ={
+
+    val transitions = input.map(transition _).map( mf => new StateAction[Unit, Machine]( m => (Unit,  mf(m) ) ))
+
+     val resultState = transitions.foldLeft( new StateAction[Unit, Machine]( m=>(Unit, m) ) )( (p, n) => p.flatMap( _ => n ) )
+
+     resultState.runAction(machine)._2
+
+  }
+
+
+
   def transition(input:Input)(machine: Machine) : Machine = {
+    println("case "+ input+ " " +machine)
     (input, machine) match {
       case (_, Machine(_, _, 0)) => machine
       case (Coin, Machine(false, _, _)) => machine
@@ -27,6 +40,10 @@ object CandyDispenser {
     }
   }
 
+
+  def modify[A,S](stateAction: StateAction[A,S])(f: S=>S): StateAction[Unit,S] = {
+    stateAction.flatMap[Unit]( _ => StateAction[S,S]( s=> (s, f(s)) ).map( _=>() )  )
+  }
 
 
 }
