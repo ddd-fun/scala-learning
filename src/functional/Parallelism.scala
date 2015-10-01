@@ -13,7 +13,10 @@ object Parallelism {
 
   def main(args: Array[String]) {
 
+
     val es =  Executors.newCachedThreadPool()
+
+    println(  Par.map( Par.sequence[Int](List( sum(IndexedSeq(1,2)), sum(IndexedSeq(3,4)) )))( (list:List[Int]) => list.sum  ).apply(es) )
 
     val res = sum( IndexedSeq(1,2,3,4,5) ).apply(es)
     println( res.get )
@@ -96,7 +99,8 @@ object Parallelism {
     }
 
     def sequence[A](list:List[Par[A]]) : Par[List[A]] = {
-      es => UnitFuture(list.map(p => fork(p)).map(p=>p(es).get))
+      list.foldLeft[Par[List[A]]]( unit(List()) ) ( (accum:Par[List[A]], next:Par[A]) => map2(accum, next) ( (list:List[A], a:A) => list.::(a)  ) )
+      //list.foldRight[Par[List[A]]](unit(List()))  (  (h,t) => map2(h,t)(_ :: _))
     }
 
 
