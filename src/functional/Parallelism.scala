@@ -1,6 +1,5 @@
 package functional
 
-import java.lang.Thread
 import java.util.concurrent.ExecutorService
 
 import java.util.concurrent.Future
@@ -14,13 +13,25 @@ object Parallelism {
 
   def main(args: Array[String]) {
 
+    val es =  Executors.newCachedThreadPool()
 
-    val res = sum( IndexedSeq(1,2,3,4,0) ).apply( Executors.newCachedThreadPool())
-
+    val res = sum( IndexedSeq(1,2,3,4,5) ).apply(es)
     println( res.get )
 
+    es.shutdown();
+    es.awaitTermination(3, TimeUnit.SECONDS)
   }
 
+
+
+  def sum_1(seq: IndexedSeq[Int]) : Int = {
+    println(seq)
+    if( seq.size <=1 ) seq.headOption getOrElse 0
+      else {
+          val (l,r) = seq.splitAt( seq.length / 2 )
+          sum_1(l) + sum_1(r)
+      }
+  }
 
 
   def sum(seq: IndexedSeq[Int]) : Par[Int] ={
@@ -60,9 +71,9 @@ object Parallelism {
 
     def fork[A](a: => Par[A]):Par[A] ={
       (es:ExecutorService) =>{
-        es.submit(new Callable[A] {
-          override def call(): A = a(es).get
-        } )
+        es.submit(new Callable[Future[A]] {
+          override def call(): Future[A] =  a(es)
+        } ).get()
       }
     }
 
