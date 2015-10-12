@@ -16,6 +16,8 @@ object Parallelism {
 
     val es =  Executors.newCachedThreadPool()
 
+    println(calcWorlds( List("asd asf af", "waegf awreg qggwfr", "vvf") )(es))
+
     println(  Par.map( Par.sequence[Int](List( sum(IndexedSeq(1,2)), sum(IndexedSeq(3,4)) )))( (list:List[Int]) => list.sum  ).apply(es) )
 
     val res = sum( IndexedSeq(1,2,3,4,5) ).apply(es)
@@ -46,21 +48,11 @@ object Parallelism {
   }
 
 
-  def calcWorlds(list:List[String]) : List[Int] = {
+  def calcWorlds(list:List[String]) : Par[Int] = {
 
-//    def wordCalculator(s:String): Int = {
-//       s.split(s).length
-//    }
-//
-//    val v:Par.Par[Int] = Par.async(1);
-//
-//    val f  = (s:String) => Par.async(wordCalculator(s))
+    val listOfPar = list.map( (s:String) => Par.async( s.split(" ").length ) )
 
-    val listOfPar = list.map[Int]( (s:String) => s.length ).sum
-
-     //Par.sequence[Int]( listOfPar )
-
-    ???
+    Par.map(Par.sequence[Int]( listOfPar ))( (l:List[Int])=>l.sum)
 
   }
 

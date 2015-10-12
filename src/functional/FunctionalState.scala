@@ -87,8 +87,8 @@ object FunctionalState {
 
   def flatMap[A,B](a: Rand[A])(mapFunc: A => Rand[B]) : Rand[B] ={
     rng => {
-          val (a, r) = a{rng}
-         mapFunc(a)(r)
+         val (ans, r) = a(rng)
+         mapFunc(ans)(r)
     }
   }
 
