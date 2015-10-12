@@ -46,6 +46,25 @@ object Parallelism {
   }
 
 
+  def calcWorlds(list:List[String]) : List[Int] = {
+
+//    def wordCalculator(s:String): Int = {
+//       s.split(s).length
+//    }
+//
+//    val v:Par.Par[Int] = Par.async(1);
+//
+//    val f  = (s:String) => Par.async(wordCalculator(s))
+
+    val listOfPar = list.map[Int]( (s:String) => s.length ).sum
+
+     //Par.sequence[Int]( listOfPar )
+
+    ???
+
+  }
+
+
   //case class Par[A](a: A)
 
   object Par {
