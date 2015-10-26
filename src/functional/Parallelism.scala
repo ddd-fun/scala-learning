@@ -13,8 +13,11 @@ object Parallelism {
 
   def main(args: Array[String]) {
 
+    val oneThEx = Executors.newSingleThreadExecutor();
 
     val es =  Executors.newCachedThreadPool()
+
+    sum(IndexedSeq(1,2,3,4,5))(es)
 
     println(calcWorlds( List("asd asf af", "waegf awreg qggwfr", "vvf") )(es))
 
