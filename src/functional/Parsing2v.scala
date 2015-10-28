@@ -60,7 +60,7 @@ object Parsing2v {
       def tryMatch(location: Location, list:List[A]) : List[A] = {
          if(location.isEnd) return list
          parser(location.slice) match {
-           case Right(r) => tryMatch(location.move, list.::(r))
+           case Right(r) => tryMatch(location.move, list ::: List(r))
            case _=> tryMatch(location.nextChar, list)
          }
       }
@@ -68,7 +68,7 @@ object Parsing2v {
       in => {
          val res = tryMatch(Location(in, 0, 1), List())
          if( res.length != i ) Left("does not match")
-           else Right(res.reverse)
+           else Right(res)
       }
 
     }
