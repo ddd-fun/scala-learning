@@ -10,7 +10,8 @@ object Parsing2v {
 
     println(char('a')("a"))
     println(or(char('a'), char('b'))("a"))
-
+    println(or(string("a"), string("b"))("a"))
+    println( listOfN(8, or(string("a"), string("b")))("aaabbbaa") )
 
   }
 
@@ -22,10 +23,7 @@ object Parsing2v {
 
     def string(s: String): Parser[String]  = {
       in => {
-        in match {
-          case s => Right(in)
-          case _=> Left("does not match")
-        }
+        if(in == s) Right(in) else Left("does not match")
       }
     }
 
@@ -48,6 +46,31 @@ object Parsing2v {
           case _ => p2(in)
         }
       }
+    }
+
+    def listOfN[A](i:Int, parser: Parser[A]): Parser[List[A]] = {
+
+     case class Location(val str:String, val start:Int, val end:Int){
+        def isEnd = end > str.length
+        def slice = if(!isEnd) str.substring(start, end) else ""
+        def nextChar = copy(end=end+1)
+        def move = copy(start=end, end=end+1)
+      }
+
+      def tryMatch(location: Location, list:List[A]) : List[A] = {
+         if(location.isEnd) return list
+         parser(location.slice) match {
+           case Right(r) => tryMatch(location.move, list.::(r))
+           case _=> tryMatch(location.nextChar, list)
+         }
+      }
+
+      in => {
+         val res = tryMatch(Location(in, 0, 1), List())
+         if( res.length != i ) Left("does not match")
+           else Right(res.reverse)
+      }
+
     }
 
 
