@@ -11,20 +11,67 @@ object Parsing2v {
 
      println(string("aaaa")("aaaaaaa"))
 
+     string("\"");
+
+     println(regex("\\s*")("   "))
+
+     println(map(many(string(" ")), (l:List[String]) => l.length)("   a b a"))
 
 
-//    println(char('a')("a"))
-//    println(or(char('a'), char('b'))("a"))
-//    println(or(string("a"), string("b"))("a"))
-//    println( listOfN(8, or(string("a"), string("b")))("aaabbbaa") )
+
 
   }
 
   type ParsingError = String
   type Parser[A] = String => Either[ParsingError, A]
 
+  case class Location(val str:String, val start:Int, val end:Int){
+    def isEnd = end > str.length
+    def slice = if(!isEnd) str.substring(start, end) else ""
+    def advanceByOneChar = copy(end=end+1)
+    def consumeParsed = copy(start=end, end=end+1)
+  }
+
+
 
   object Parser extends Parsers{
+
+
+    override def map2[A,B,C](p1:Parser[A],  p2:Parser[B])(f: (A,B)=>C) : Parser[C] = {
+     in =>{
+       //flat map is needed
+       val func = (a:A) => map[B,C](p2, (b:B) => f(a,b))
+       map[A,Parser[C]](p1, (a:A) => func(a) ) (in) match {
+         case Right(r:Parser[C]) => r(in)
+         case Left(l) => Left(l)
+       }
+     }
+    }
+
+    override def map[A,B](p:Parser[A], m:A=>B) : Parser[B] = {
+      in =>{
+         p(in) match {
+           case Right(r) => Right(m(r))
+           case Left(l)=> Left(l)
+         }
+      }
+    }
+
+    override def many[A](p:Parser[A]):Parser[List[A]] ={
+
+       def parse[A](p:Parser[A], location:Location, accum:List[A]): Either[ParsingError, List[A]] = {
+         if(location.isEnd) return Right(accum)
+           p(location.slice) match {
+             case Left(_) => parse(p, location.advanceByOneChar, accum)
+             case Right(r)=> parse(p, location.consumeParsed, r::accum)
+           }
+       }
+
+      in => {
+        parse(p, Location(in, 0, 1), List())
+      }
+    }
+
 
     override def or[A](p1: Parser[A], p2: Parser[A]): Parser[A] = {
      (in) => {
@@ -55,7 +102,13 @@ object Parsing2v {
 
   trait Parsers { self =>
 
-    def or[A](p1: Parser[A], p2: Parser[A]): Parser[A]
+    implicit def map2[A,B,C](p1:Parser[A],  p2:Parser[B])(f: (A,B)=>C) : Parser[C]
+
+    implicit def many[A](p:Parser[A]):Parser[List[A]]
+
+    implicit def or[A](p1: Parser[A], p2: Parser[A]): Parser[A]
+
+    implicit def map[A,B](p:Parser[A], m:A=>B) : Parser[B]
 
     //def flatMap[A,B](f: A=>Parser[B]) : Parser[B]
 
